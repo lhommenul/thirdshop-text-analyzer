@@ -14,3 +14,6 @@ Travaux du jour:
 - Fréquence des mots (TF): `termFrequency` avec options relatif/brut (`src/text/tf.ts`).
 - Tests: `src/stats/descriptive_test.ts`, `src/text/tf_test.ts`.
 - Démo: `main.ts` exécute un résumé statistique et un TF simple.
+ - IDF: `idfFromDocs` avec lissage et base log personnalisable (`src/text/idf.ts`).
+ - Tests IDF: `src/text/idf_test.ts` (corpus simple, smoothing > 0).
+ - Démo mise à jour: `main.ts` lit `dataset/pieceoccasion-1.html` et `dataset/pieceoccasion-2.html`, calcule TF sur `text1` et un échantillon d'IDF sur les deux documents.
