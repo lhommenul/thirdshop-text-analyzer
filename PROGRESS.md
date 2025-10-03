@@ -17,3 +17,6 @@ Travaux du jour:
  - IDF: `idfFromDocs` avec lissage et base log personnalisable (`src/text/idf.ts`).
  - Tests IDF: `src/text/idf_test.ts` (corpus simple, smoothing > 0).
  - Démo mise à jour: `main.ts` lit `dataset/pieceoccasion-1.html` et `dataset/pieceoccasion-2.html`, calcule TF sur `text1` et un échantillon d'IDF sur les deux documents.
+ - TF-IDF: `tfidfFromDocs` et helper `topKTerms` (`src/text/tfidf.ts`).
+ - Tests TF-IDF: `src/text/tfidf_test.ts`.
+ - Démo TF-IDF: `main.ts` affiche le top 10 des termes TF-IDF pour chaque document.

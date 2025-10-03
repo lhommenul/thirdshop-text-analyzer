@@ -1,6 +1,7 @@
 import { computeSummary } from "./src/stats/descriptive.ts";
 import { termFrequency } from "./src/text/tf.ts";
 import { idfFromDocs } from "./src/text/idf.ts";
+import { tfidfFromDocs, topKTerms } from "./src/text/tfidf.ts";
 
 const numbers = [2, 4, 4, 4, 5, 5, 7, 9];
 const [statsErr, stats] = computeSummary(numbers);
@@ -32,6 +33,17 @@ if (idfErr) {
   const view: Record<string, number> = {};
   for (const t of sampleTerms) if (idf[t] !== undefined) view[t] = Number(idf[t].toFixed(4));
   console.log("IDF (sample):", view);
+}
+
+// TF-IDF demo: compute vectors and display top terms for each doc
+const [tfidfErr, vectors] = tfidfFromDocs([doc1, doc2], { tfRelative: false, idfSmooth: true });
+if (tfidfErr) {
+  console.error("TF-IDF error:\n", tfidfErr.message);
+} else {
+  const top1 = topKTerms(vectors[0], 10);
+  const top2 = topKTerms(vectors[1], 10);
+  console.log("TF-IDF top 10 (doc1):", top1);
+  console.log("TF-IDF top 10 (doc2):", top2);
 }
 
 
