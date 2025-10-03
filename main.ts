@@ -2,6 +2,7 @@ import { computeSummary } from "./src/stats/descriptive.ts";
 import { termFrequency } from "./src/text/tf.ts";
 import { idfFromDocs } from "./src/text/idf.ts";
 import { tfidfFromDocs, topKTerms } from "./src/text/tfidf.ts";
+import { buildCooccurrenceMatrix, mostAssociated, computePPMI } from "./src/text/cooccurrence.ts";
 
 const numbers = [2, 4, 4, 4, 5, 5, 7, 9];
 const [statsErr, stats] = computeSummary(numbers);
@@ -44,6 +45,25 @@ if (tfidfErr) {
   const top2 = topKTerms(vectors[1], 10);
   console.log("TF-IDF top 10 (doc1):", top1);
   console.log("TF-IDF top 10 (doc2):", top2);
+}
+
+// Co-occurrence demo: window-based counts and PPMI
+const [coocErr, cooc] = buildCooccurrenceMatrix(text1, { windowSize: 2, distanceWeighting: true });
+if (coocErr) {
+  console.error("Co-occurrence error:", coocErr.message);
+} else {
+
+  const lookupTerm = "prix";
+
+  const neighbors = mostAssociated(cooc, lookupTerm, 10);
+  console.log(`Co-occurrence top for ${lookupTerm}:`, neighbors);
+  const [ppmiErr, ppmi] = computePPMI(cooc);
+  if (ppmiErr) {
+    console.error("PPMI error:", ppmiErr.message);
+  } else {
+    const neighborsPpmi = mostAssociated(ppmi, lookupTerm, 10);
+    console.log(`PPMI top for ${lookupTerm}:`, neighborsPpmi);
+  }
 }
 
 

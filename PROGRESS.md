@@ -20,3 +20,6 @@ Travaux du jour:
  - TF-IDF: `tfidfFromDocs` et helper `topKTerms` (`src/text/tfidf.ts`).
  - Tests TF-IDF: `src/text/tfidf_test.ts`.
  - Démo TF-IDF: `main.ts` affiche le top 10 des termes TF-IDF pour chaque document.
+ - Cooccurrence: `buildCooccurrenceMatrix`, `mostAssociated`, `computePPMI` (`src/text/cooccurrence*.ts`).
+ - Tests Cooccurrence/PPMI: `src/text/cooccurrence_test.ts`.
+ - Démo Cooccurrence: `main.ts` affiche voisins de `"porte"` (brut et PPMI).
