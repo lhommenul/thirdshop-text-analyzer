@@ -67,3 +67,39 @@ Session du 04/10/2025 - Normalisation HTML:
    * STRUCTURE_AWARE: Analyse de structure documentaire, extraction de sections
    * WITH_METADATA: SEO, classification de documents, enrichissement contextuel
    * AGGRESSIVE: Nettoyage maximal pour analyse linguistique pure
+
+Session du 04/10/2025 - Sprint 0: Préparation du Projet (PLAN_FINAL.md):
+ - ✅ Plan de développement final consolidé (fusion des plans A et BIS) : `PLAN_FINAL.md` (1726 lignes)
+ - ✅ Structure de dossiers créée pour nouveaux modules:
+   * `src/html/` - Parsing HTML et manipulation DOM
+   * `src/extraction/` - Extraction données produit
+   * `src/classification/` - Classification pages produit vs non-produit
+   * `src/pipeline/` - Pipeline unifié d'analyse
+   * `src/cli/` - Interface ligne de commande
+   * `tests/integration/` - Tests d'intégration
+   * `tests/benchmarks/` - Benchmarks de performance
+   * `tools/` - Outils annexes
+ - ✅ Configuration `deno.json` mise à jour:
+   * Dépendance `linkedom@^0.16` ajoutée (parser DOM HTML)
+   * Dépendances `@std/path`, `@std/fs` ajoutées
+   * TypeScript strict mode activé
+   * Tasks ajoutées: test, bench, fmt, lint
+ - ✅ Fichiers de types créés (1,106 lignes total):
+   * `src/html/parser_types.ts` (154 lignes): DOMNode, ParseOptions, ParsedDocument, JsonLdData, MicrodataItem, PageMetadata
+   * `src/extraction/extraction_types.ts` (340 lignes): ProductInfo (35+ champs), Money, Weight, Dimensions, BatteryInfo, ExtractionEvidence, FusionResult
+   * `src/classification/classification_types.ts` (324 lignes): PageFeatures, ClassificationResult, ClassifierRules, ScoringReport, ClassificationMetrics
+   * `src/pipeline/analyzer_types.ts` (288 lignes): AnalysisOptions, AnalysisResult, BatchOptions, OutputFormat, PipelineConfig
+ - ✅ Validation:
+   * Compilation TypeScript: ✓ Tous les fichiers compilent sans erreur
+   * Lint: ✓ Aucun warning (correction de `any` → `unknown`)
+   * linkedom: ✓ Testé et fonctionnel
+ - 📋 Décisions techniques Sprint 0:
+   * Utilisation de `linkedom` comme parser DOM (léger, performant, compatible Deno)
+   * Architecture modulaire: html/ → extraction/ → classification/ → pipeline/
+   * Types strictement typés avec `unknown` au lieu de `any`
+   * Normalisation rigoureuse: prix en centimes (ISO 4217), poids en grammes, dimensions en millimètres
+   * Evidence tracking complet pour traçabilité des extractions
+   * Feature engineering riche: structural (16 features), textual (12 features), semantic (6 features)
+   * Pipeline configurable avec steps optionnels
+   * Support multi-format: JSON, CSV, Markdown, texte
+ - 🎯 Prêt pour Sprint 1: Parsing & Extraction de base (3 jours)
