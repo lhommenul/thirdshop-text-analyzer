@@ -40,3 +40,30 @@ Travaux du jour:
  - Analyse factorielle: `factorAnalysis` avec rotation varimax (`src/stats/factor.ts`).
  - Tests PCA/FA: `src/stats/pca_test.ts`, `src/stats/factor_test.ts`.
  - Démo PCA/FA: `main.ts` calcule TF-IDF sur 2 docs et affiche top termes par composante/facteur.
+
+Session du 04/10/2025 - Normalisation HTML:
+ - Types de normalisation: `NormalizationStrategy` (enum), `NormalizeOptions`, `NormalizedContent`, `HTML_ENTITIES` (`src/text/normalize_types.ts`).
+ - Fonctions de normalisation HTML (`src/text/normalize.ts`):
+   * `normalizeHtml`: Point d'entrée principal avec sélection de stratégie
+   * `normalizeBasic`: Suppression simple des balises HTML
+   * `normalizeContentOnly`: Garde uniquement le contenu visible (enlève scripts, styles, commentaires, SVG)
+   * `normalizeStructureAware`: Préserve la structure avec sauts de ligne pour titres/paragraphes
+   * `normalizeWithMetadata`: Extrait métadonnées (title, description, keywords, language) + contenu
+   * `normalizeAggressive`: Nettoyage maximal pour texte pur uniquement
+   * `extractText`: Helper simple pour extraction de texte
+   * `compareStrategies`: Compare toutes les stratégies sur un même HTML
+ - Tests unitaires complets: `src/text/normalize_test.ts` (30+ tests couvrant toutes les stratégies et cas limites).
+ - Exemples d'utilisation: `examples/normalize_example.ts` (8 exemples détaillés incluant pipeline complet).
+ - Décisions techniques:
+   * Utilisation du type `Result<T>` pour gestion uniforme des erreurs
+   * Enum `NormalizationStrategy` pour sélection explicite de stratégie
+   * Support Unicode complet (caractères accentués, chinois, arabe, etc.)
+   * Décodage des entités HTML (nommées, décimales, hexadécimales)
+   * Options configurables pour whitespace, lignes vides, sauts de ligne
+   * Fonction helper `decodeHtmlEntities` pour conversion d'entités HTML courantes
+ - Cas d'usage recommandés par stratégie:
+   * BASIC: Tests rapides, prototypage
+   * CONTENT_ONLY: Usage général, recommandée par défaut
+   * STRUCTURE_AWARE: Analyse de structure documentaire, extraction de sections
+   * WITH_METADATA: SEO, classification de documents, enrichissement contextuel
+   * AGGRESSIVE: Nettoyage maximal pour analyse linguistique pure
