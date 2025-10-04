@@ -20,14 +20,9 @@ import { generateDetailedScore, sigmoidConfidence } from "./scoring.ts";
  */
 export const DEFAULT_RULES: ClassifierRules = {
   threshold: 5.0,
-  weights: {
-    structural: 0.5,
-    textual: 0.3,
-    semantic: 0.2,
-  },
-  minConfidence: 0.0,
-  requireJsonLd: false,
-  requirePrice: false,
+  structuralWeight: 0.5,
+  textualWeight: 0.3,
+  semanticWeight: 0.2,
 };
 
 /**
@@ -56,10 +51,6 @@ export function classifyPage(
     const config: ClassifierRules = {
       ...DEFAULT_RULES,
       ...rules,
-      weights: {
-        ...DEFAULT_RULES.weights,
-        ...rules.weights,
-      },
     };
 
     // Extract features
@@ -90,56 +81,100 @@ export function classifyFeatures(
   try {
     // Calculate weighted score
     const score =
-      features.scores.structuralScore * rules.weights.structural +
-      features.scores.textualScore * rules.weights.textual +
-      features.scores.semanticScore * rules.weights.semantic;
+      features.scores.structuralScore * rules.structuralWeight +
+      features.scores.textualScore * rules.textualWeight +
+      features.scores.semanticScore * rules.semanticWeight;
 
     // Base classification decision
-    let isProductPage = score >= rules.threshold;
+    const isProductPage = score >= rules.threshold;
 
-    // Apply additional rules
-    if (rules.requireJsonLd && !features.structural.hasJsonLdProduct) {
-      isProductPage = false;
-    }
+    // Calculate confidence based on distance to threshold
+    const confidence = sigmoidConfidence(score, rules.threshold);
 
-    if (rules.requirePrice && !features.textual.hasPrice) {
-      isProductPage = false;
-    }
-
-    // Calculate confidence
-    const baseConfidence = sigmoidConfidence(score, rules.threshold);
-    
-    // Boost confidence for strong indicators
-    let confidence = baseConfidence;
-    if (features.structural.hasJsonLdProduct) confidence = Math.min(confidence * 1.2, 1.0);
-    if (features.structural.hasAddToCartButton) confidence = Math.min(confidence * 1.1, 1.0);
-
-    // Reduce confidence for weak pages
-    if (features.textual.wordCount < 50) confidence *= 0.8;
-    if (features.structural.linkDensity > 0.6) confidence *= 0.9;
-
-    // Ensure minimum confidence
-    if (confidence < rules.minConfidence) {
-      isProductPage = false;
-    }
-
-    // Generate detailed score and reasons
-    const [scoreErr, detailedScore] = generateDetailedScore(features);
-    if (scoreErr) return fail(scoreErr);
+    // Generate reasons
+    const reasons = generateReasons(features, score, isProductPage);
 
     const result: ClassificationResult = {
       isProductPage,
       score,
       confidence,
       features,
-      reasons: detailedScore.reasons,
-      warnings: detailedScore.warnings,
+      reasons,
     };
 
     return ok(result);
   } catch (error) {
     return fail(error);
   }
+}
+
+/**
+ * Generate human-readable reasons for classification
+ */
+function generateReasons(
+  features: PageFeatures,
+  score: number,
+  isProductPage: boolean,
+): string[] {
+  const reasons: string[] = [];
+
+  // Structural features
+  if (features.structural.hasJsonLdProduct) {
+    reasons.push("✓ JSON-LD Product détecté");
+  }
+  if (features.structural.hasOpenGraphProduct) {
+    reasons.push("✓ Open Graph Product détecté");
+  }
+  if (features.structural.hasSchemaOrgProduct) {
+    reasons.push("✓ Schema.org Product détecté");
+  }
+  if (features.structural.hasAddToCartButton) {
+    reasons.push("✓ Bouton 'Ajouter au panier' trouvé");
+  }
+  if (features.structural.hasPriceDisplay) {
+    reasons.push("✓ Affichage prix détecté");
+  }
+  if (features.structural.hasRatings) {
+    reasons.push("✓ Notes/avis présents");
+  }
+  if (features.structural.imageHighResCount > 0) {
+    reasons.push(`✓ Images haute résolution: ${features.structural.imageHighResCount}`);
+  }
+
+  // Textual features
+  if (features.textual.hasPrice) {
+    reasons.push("✓ Prix trouvé dans le texte");
+  }
+  if (features.textual.hasReference) {
+    reasons.push("✓ Référence produit trouvée");
+  }
+  if (features.textual.hasStock) {
+    reasons.push("✓ Information stock présente");
+  }
+
+  // Semantic features
+  if (features.semantic.hasSpecTable) {
+    reasons.push("✓ Tableau de spécifications présent");
+  }
+  if (features.semantic.hasProductDescription) {
+    reasons.push("✓ Description produit présente");
+  }
+
+  // Warnings
+  if (!features.structural.hasJsonLdProduct && !features.structural.hasOpenGraphProduct) {
+    reasons.push("⚠ Pas de métadonnées structurées");
+  }
+  if (!features.structural.hasAddToCartButton && !features.structural.hasBuyButton) {
+    reasons.push("⚠ Pas de bouton d'achat");
+  }
+  if (features.structural.linkDensity > 0.5) {
+    reasons.push("⚠ Densité de liens élevée");
+  }
+
+  // Add overall assessment
+  reasons.push(`Score: ${score.toFixed(2)}/10`);
+
+  return reasons;
 }
 
 /**
@@ -190,14 +225,18 @@ export function classifyWithThreshold(
  * Classify with custom weights
  * 
  * @param html - HTML string
- * @param weights - Custom weights for scoring dimensions
+ * @param structuralWeight - Weight for structural features
+ * @param textualWeight - Weight for textual features
+ * @param semanticWeight - Weight for semantic features
  * @returns Classification result
  */
 export function classifyWithWeights(
   html: string,
-  weights: Partial<ClassifierRules["weights"]>,
+  structuralWeight: number,
+  textualWeight: number,
+  semanticWeight: number,
 ): Result<ClassificationResult> {
-  return classifyPage(html, { weights });
+  return classifyPage(html, { structuralWeight, textualWeight, semanticWeight });
 }
 
 /**

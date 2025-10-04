@@ -47,7 +47,9 @@ export function parseHtml(
     }
 
     // Parse HTML with linkedom
-    const { document } = parseHTML(html);
+    const parsedWindow = parseHTML(html);
+    // deno-lint-ignore no-explicit-any
+    const document = (parsedWindow as any).document as DOMDocument;
 
     // Apply options
     if (options.removeScripts !== false) {

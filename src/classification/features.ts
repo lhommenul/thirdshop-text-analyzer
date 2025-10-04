@@ -11,7 +11,7 @@ import type { PageFeatures } from "./classification_types.ts";
 import { parseHtml } from "../html/parser.ts";
 import { extractMainContent, calculateLinkDensity } from "../html/content_extractor.ts";
 import { normalizeHtml } from "../text/normalize.ts";
-import { NormalizationStrategy } from "../text/normalize_types.ts";
+import { NormalizationStrategy, type NormalizedContent } from "../text/normalize_types.ts";
 import { filterStopwords, stopwordDensity } from "../text/stopwords_fr.ts";
 import { termFrequency } from "../text/tf.ts";
 import { ECOMMERCE_KEYWORDS, PRODUCT_KEYWORDS } from "../extraction/patterns.ts";
@@ -55,8 +55,8 @@ export interface FeatureExtractionOptions {
  */
 export function extractFeatures(
   html: string,
-  normalized?: { text: string; metadata: unknown },
-  mainContent?: { mainContent: string; linkDensity: number; contentDensity: number },
+  normalized?: NormalizedContent,
+  mainContent?: { mainContent: string; mainContentNode: DOMNode; linkDensity?: number; contentDensity: number; removedNodes?: string[] },
   options: FeatureExtractionOptions = {},
 ): Result<PageFeatures> {
   try {
@@ -65,19 +65,21 @@ export function extractFeatures(
     if (parseErr) return fail(parseErr);
 
     // Normalize HTML if not provided
-    if (!normalized) {
+    let normalizedContent = normalized;
+    if (!normalizedContent) {
       const [normErr, normResult] = normalizeHtml(html, {
         strategy: NormalizationStrategy.WITH_METADATA,
       });
       if (normErr) return fail(normErr);
-      normalized = normResult;
+      normalizedContent = normResult;
     }
 
     // Extract main content if not provided
-    if (!mainContent) {
+    let mainContentData = mainContent;
+    if (!mainContentData) {
       const [contentErr, contentResult] = extractMainContent(parsed.document);
       if (contentErr) return fail(contentErr);
-      mainContent = contentResult;
+      mainContentData = contentResult;
     }
 
     // Extract features
@@ -85,15 +87,15 @@ export function extractFeatures(
     if (structErr) return fail(structErr);
 
     const [textErr, textual] = extractTextualFeatures(
-      normalized.text,
-      mainContent.mainContent,
+      normalizedContent.text,
+      mainContentData.mainContent,
       options,
     );
     if (textErr) return fail(textErr);
 
     const [semErr, semantic] = extractSemanticFeatures(
       parsed.document,
-      mainContent.contentDensity,
+      mainContentData.contentDensity,
     );
     if (semErr) return fail(semErr);
 

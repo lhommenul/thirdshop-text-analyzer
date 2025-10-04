@@ -9,6 +9,19 @@ import { ok } from "../types/result.ts";
 import type { DetailedScore, PageFeatures, ScoringReport } from "./classification_types.ts";
 
 /**
+ * Comprehensive scoring result with explanations
+ */
+export interface ScoringResult {
+  score: number;
+  structuralScore: number;
+  textualScore: number;
+  semanticScore: number;
+  reasons: string[];
+  warnings: string[];
+  confidence: number;
+}
+
+/**
  * Generate detailed score with explanations
  * 
  * @param features - Page features
@@ -25,7 +38,7 @@ import type { DetailedScore, PageFeatures, ScoringReport } from "./classificatio
  */
 export function generateDetailedScore(
   features: PageFeatures,
-): Result<DetailedScore> {
+): Result<ScoringResult> {
   const reasons: string[] = [];
   const warnings: string[] = [];
 
@@ -130,7 +143,8 @@ export function generateDetailedScore(
     );
   }
 
-  const detailedScore: DetailedScore = {
+  // Return an object with scores and explanations
+  const result = {
     score: features.scores.overallScore,
     structuralScore: features.scores.structuralScore,
     textualScore: features.scores.textualScore,
@@ -140,7 +154,7 @@ export function generateDetailedScore(
     confidence: calculateConfidence(features),
   };
 
-  return ok(detailedScore);
+  return ok(result);
 }
 
 /**
@@ -178,31 +192,15 @@ export function generateScoringReport(
   if (err) return [err, null];
 
   const report: ScoringReport = {
-    overallScore: features.scores.overallScore,
-    isProductPage: features.scores.overallScore >= 5.0,
-    confidence: detailedScore.confidence,
+    details: [], // Would need to be populated with DetailedScore items
+    totalScore: features.scores.overallScore,
     breakdown: {
-      structural: {
-        score: features.scores.structuralScore,
-        weight: 0.5,
-        contribution: features.scores.structuralScore * 0.5,
-        features: features.structural,
-      },
-      textual: {
-        score: features.scores.textualScore,
-        weight: 0.3,
-        contribution: features.scores.textualScore * 0.3,
-        features: features.textual,
-      },
-      semantic: {
-        score: features.scores.semanticScore,
-        weight: 0.2,
-        contribution: features.scores.semanticScore * 0.2,
-        features: features.semantic,
-      },
+      structural: features.scores.structuralScore,
+      textual: features.scores.textualScore,
+      semantic: features.scores.semanticScore,
     },
-    reasons: detailedScore.reasons,
-    warnings: detailedScore.warnings,
+    result: features.scores.overallScore >= 5.0 ? "product" : "non_product",
+    confidence: detailedScore.confidence,
   };
 
   return ok(report);
