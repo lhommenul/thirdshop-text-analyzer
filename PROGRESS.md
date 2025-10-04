@@ -23,3 +23,7 @@ Travaux du jour:
  - Cooccurrence: `buildCooccurrenceMatrix`, `mostAssociated`, `computePPMI` (`src/text/cooccurrence*.ts`).
  - Tests Cooccurrence/PPMI: `src/text/cooccurrence_test.ts`.
  - Démo Cooccurrence: `main.ts` affiche voisins de `"porte"` (brut et PPMI).
+ - PCA: `pca`, `pcaTransform` (`src/stats/pca.ts`) + utilitaires matrice (`src/math/matrix.ts`).
+ - Analyse factorielle: `factorAnalysis` avec rotation varimax (`src/stats/factor.ts`).
+ - Tests PCA/FA: `src/stats/pca_test.ts`, `src/stats/factor_test.ts`.
+ - Démo PCA/FA: `main.ts` calcule TF-IDF sur 2 docs et affiche top termes par composante/facteur.

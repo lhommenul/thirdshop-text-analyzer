@@ -3,6 +3,8 @@ import { termFrequency } from "./src/text/tf.ts";
 import { idfFromDocs } from "./src/text/idf.ts";
 import { tfidfFromDocs, topKTerms } from "./src/text/tfidf.ts";
 import { buildCooccurrenceMatrix, mostAssociated, computePPMI } from "./src/text/cooccurrence.ts";
+import { pca } from "./src/stats/pca.ts";
+import { factorAnalysis } from "./src/stats/factor.ts";
 
 const numbers = [2, 4, 4, 4, 5, 5, 7, 9];
 const [statsErr, stats] = computeSummary(numbers);
@@ -63,6 +65,42 @@ if (coocErr) {
   } else {
     const neighborsPpmi = mostAssociated(ppmi, lookupTerm, 10);
     console.log(`PPMI top for ${lookupTerm}:`, neighborsPpmi);
+  }
+}
+
+// PCA/Factor Analysis demo on TF-IDF vectors
+const [tfidfForPcaErr, tfidfVectors] = tfidfFromDocs([text1, text2], { tfRelative: false, idfSmooth: true });
+if (tfidfForPcaErr) {
+  console.error("TF-IDF for PCA error:", tfidfForPcaErr.message);
+} else {
+  // build unified vocabulary
+  const vocab = new Set<string>();
+  for (const v of tfidfVectors) for (const t of Object.keys(v)) vocab.add(t);
+  const terms = Array.from(vocab);
+  const X = tfidfVectors.map((vec) => terms.map((t) => vec[t] ?? 0));
+
+  const [pcaErr, pcaModel] = pca(X, { standardize: true });
+  if (pcaErr) {
+    console.error("PCA error:", pcaErr.message);
+  } else {
+    // loadings: variables x components
+    const componentsToShow = 2;
+    for (let c = 0; c < Math.min(componentsToShow, pcaModel.components[0]?.length ?? 0); c++) {
+      const loadings = terms.map((t, i) => [t, Math.abs(pcaModel.components[i][c])] as [string, number]);
+      loadings.sort((a, b) => b[1] - a[1]);
+      console.log(`PCA comp ${c + 1} top terms:`, loadings.slice(0, 10));
+    }
+  }
+
+  const [faErr, faModel] = factorAnalysis(X, { numFactors: 2, rotate: "varimax", standardize: true });
+  if (faErr) {
+    console.error("Factor Analysis error:", faErr.message);
+  } else {
+    for (let f = 0; f < Math.min(2, faModel.loadings[0]?.length ?? 0); f++) {
+      const loads = terms.map((t, i) => [t, Math.abs(faModel.loadings[i][f])] as [string, number]);
+      loads.sort((a, b) => b[1] - a[1]);
+      console.log(`FA factor ${f + 1} top terms:`, loads.slice(0, 10));
+    }
   }
 }
 
