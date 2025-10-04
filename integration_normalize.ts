@@ -51,10 +51,9 @@ async function processHtmlFile(filepath: string): Promise<string | null> {
 async function main() {
   try {
     // Traiter les deux fichiers du dataset
-    const files = [
-      "dataset/pieceoccasion-1.html",
-      "dataset/pieceoccasion-2.html",
-    ];
+    const datasetFiles = Deno.readDirSync("dataset");
+
+    const files = datasetFiles.map((file) => "dataset/" + file.name);
 
     console.log("🔄 Traitement des fichiers HTML...\n");
 
