@@ -1,11 +1,24 @@
-Comment produire le code les règles : 
-1. utiliser try catch 
-2. faire du modulaire, limiter un maximum les grosses fonctions unlisibles
-3. utiliser comme type de retour Turple = [Error,null] | [null,T]
-4. split les fichiers
-5. split les types et interface enum dans des fichiers séparés
-6. faire des fichiers de test pour chaque fonctions réalisés
-7. Les développement que tu vas faire tu dois en garder un résumer dans 
+Comment produire du code en respectant les bonnes pratiques :
+
+    Gestion des erreurs : Utiliser des blocs try/catch pour capturer et traiter les exceptions.
+    Modularité :
+        Découper le code en petites fonctions claires et réutilisables.
+        Éviter les fonctions trop longues et illisibles.
+    Typage des retours :
+        Privilégier un système de retour uniformisé sous forme de tuple : [Error, null] | [null, T] (où T est le type attendu en cas de succès).
+    Organisation des fichiers :
+        Séparer la logique en plusieurs fichiers selon leur responsabilité (ex : services/, utils/, models/).
+    Typage et interfaces :
+        Isoler les types, interfaces et énumérations (enum) dans des fichiers dédiés (ex : types.ts, interfaces/, enums.ts).
+    Tests unitaires :
+        Créer un fichier de test pour chaque fonction/módulo développé (ex : maFonction.test.ts).
+        Utiliser un framework comme Jest, Mocha ou Vitest.
+    Suivi des progrès :
+        Documenter l’avancement du développement dans un fichier PROGRESS.md (ex : fonctionnalités implémentées, bugs corrigés, décisions techniques).
+    Jeux de données pour les tests :
+        Utiliser les fichiers du dossier /dataset pour les tests et l’entraînement.
+        Créer des données supplémentaires si nécessaire pour couvrir tous les cas d’usage.
+
 
 Travaux du jour:
 - Création du type `Result<T>` et helpers `ok`/`fail` (`src/types/result.ts`).
