@@ -1,0 +1,57 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'thirdshop-text-analyzer'
+    environment: 'dev'
+
+# Alertmanager configuration (optionnel pour l'instant)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Configuration des règles d'alerte
+rule_files:
+  # - "alerts/*.yml"
+
+# Configuration des cibles à scraper
+scrape_configs:
+  # Prometheus lui-même
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # Votre application ThirdShop Text Analyzer
+  # À adapter selon votre instrumentation
+  - job_name: 'thirdshop-text-analyzer'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+        labels:
+          service: 'text-analyzer'
+          app: 'thirdshop'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Grafana
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+        labels:
+          service: 'grafana'
+
+  # Tempo
+  - job_name: 'tempo'
+    static_configs:
+      - targets: ['tempo:3200']
+        labels:
+          service: 'tempo'
+
+  # Loki
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+        labels:
+          service: 'loki'

@@ -10,25 +10,27 @@ Mise en place d'une stack d'observabilité complète pour le monitoring et le tr
 - **LOKI** : Agrégation de logs
 
 ---
-## 📊 Prochaines Étapes (Stack d'Observabilité)
+## 📊 Étapes Complétées ✅
 
-Une fois l'environnement installé, les prochaines étapes incluront :
-
-1. **Création du `docker-compose.yml`** pour orchestrer :
+1. **✅ Création du `docker-compose.yml`** pour orchestrer :
    - Grafana (port 3000)
    - Prometheus (port 9090)
-   - Tempo (port 3200, 4317)
+   - Tempo (port 3200, 4317, 4318)
    - Loki (port 3100)
+   - Promtail (agent de collecte de logs)
 
-2. **Configuration des sources de données** :
-   - Prometheus → Grafana
-   - Loki → Grafana
-   - Tempo → Grafana
+2. **✅ Configuration des sources de données** :
+   - Prometheus → Grafana (auto-provisionné)
+   - Loki → Grafana (auto-provisionné)
+   - Tempo → Grafana (auto-provisionné)
+   - Corrélation automatique : Logs ↔ Traces ↔ Métriques
+
+## 📊 Prochaines Étapes
 
 3. **Instrumentation de l'application** :
-   - Export de métriques vers Prometheus
-   - Export de traces vers Tempo
-   - Export de logs vers Loki
+   - Export de métriques vers Prometheus (endpoint `/metrics`)
+   - Export de traces vers Tempo (OTLP HTTP/gRPC)
+   - Export de logs vers Loki (via fichiers JSON)
 
 4. **Création des dashboards Grafana** :
    - Métriques de performance (temps/page, throughput)
@@ -47,4 +49,16 @@ Une fois l'environnement installé, les prochaines étapes incluront :
 
 ---
 
-**Status :** 📦 **Environnement de base prêt à être installé**
+**Status :** ✅ **Stack d'observabilité opérationnelle** - Prête à être démarrée avec `./observability/start.sh`
+
+## 🚀 Démarrage Rapide
+
+```bash
+cd observability
+./start.sh
+```
+
+Puis accéder à Grafana : http://localhost:3000
+
+📖 Documentation complète : `./observability/README.md`
+⚡ Guide rapide : `./observability/QUICKSTART.md`

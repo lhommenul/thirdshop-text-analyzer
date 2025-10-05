@@ -1,0 +1,18 @@
+# Logs
+logs/*.log
+logs/*.json
+
+# Ne pas ignorer .gitkeep si présent
+!logs/.gitkeep
+
+# Variables d'environnement
+.env
+
+# Données temporaires
+*.tmp
+*.swp
+*.swo
+
+# Backup files
+*.bak
+*~

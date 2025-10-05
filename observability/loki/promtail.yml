@@ -1,0 +1,57 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Logs de l'application ThirdShop Text Analyzer
+  - job_name: thirdshop-text-analyzer
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: thirdshop-logs
+          app: text-analyzer
+          environment: dev
+          __path__: /logs/*.log
+
+  # Logs système (optionnel)
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/*.log
+
+  # Configuration pour parser les logs JSON
+  - job_name: thirdshop-json-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: thirdshop-json
+          app: text-analyzer
+          __path__: /logs/*.json
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            message: message
+            timestamp: timestamp
+            trace_id: trace_id
+            span_id: span_id
+      - labels:
+          level:
+          trace_id:
+          span_id:
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+      - output:
+          source: message
