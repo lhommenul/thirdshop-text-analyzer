@@ -9,7 +9,7 @@
  */
 
 import type { Result } from "../types/result.ts";
-import { ok } from "../types/result.ts";
+import { ok, fail } from "../types/result.ts";
 import type { ProductInfo, ExtractionEvidence } from "./extraction_types.ts";
 
 /**
@@ -72,10 +72,13 @@ export interface FusionResult<T> {
   /** Confidence in fused value (0-1) */
   confidence: number;
   
+  /** Primary source of the value */
+  source: ExtractionSource;
+  
   /** Sources that contributed to the value */
   sources: ExtractionSource[];
   
-  /** Winning source (for priority/confidence strategies) */
+  /** Winning source (alias for source, for backward compatibility) */
   winningSource?: ExtractionSource;
   
   /** Whether there was a conflict */
@@ -132,6 +135,7 @@ function fusePriority<T>(
     return {
       value: candidates[0].value,
       confidence: candidates[0].confidence,
+      source: candidates[0].source,
       sources: [candidates[0].source],
       winningSource: candidates[0].source,
       hadConflict: false,
@@ -152,6 +156,7 @@ function fusePriority<T>(
   return {
     value: winner.value,
     confidence: winner.confidence * SOURCE_WEIGHTS[winner.source],
+    source: winner.source,
     sources: [winner.source],
     winningSource: winner.source,
     hadConflict,
@@ -181,6 +186,7 @@ function fuseConfidence<T>(
     return {
       value: candidates[0].value,
       confidence: candidates[0].confidence,
+      source: candidates[0].source,
       sources: [candidates[0].source],
       winningSource: candidates[0].source,
       hadConflict: false,
@@ -193,6 +199,7 @@ function fuseConfidence<T>(
   return {
     value: winner.value,
     confidence: winner.confidence,
+    source: winner.source,
     sources: [winner.source],
     winningSource: winner.source,
     hadConflict,
@@ -273,7 +280,9 @@ function fuseVotingNumber(
   return {
     value: fusedValue,
     confidence: Math.min(confidence, 1.0),
+    source: winner.sources[0],
     sources: winner.sources,
+    winningSource: winner.sources[0],
     hadConflict: groups.length > 1,
     resolution: groups.length > 1
       ? `Weighted average of ${winner.candidates.length} sources`
@@ -341,7 +350,9 @@ function fuseVotingString(
   return {
     value: winnerValue,
     confidence: Math.min(maxWeight / winnerGroup.candidates.length, 1.0),
+    source: winnerGroup.sources[0],
     sources: winnerGroup.sources,
+    winningSource: winnerGroup.sources[0],
     hadConflict: groups.size > 1,
     resolution: groups.size > 1
       ? `Voted by ${winnerGroup.candidates.length} sources`
@@ -361,18 +372,14 @@ export function fuseCandidates<T>(
   options: FusionOptions = {},
 ): Result<FusionResult<T>> {
   if (candidates.length === 0) {
-    return ok({
-      value: null as T,
-      confidence: 0,
-      sources: [],
-      hadConflict: false,
-    });
+    return fail(new Error("Cannot fuse empty candidate list"));
   }
   
   if (candidates.length === 1) {
     return ok({
       value: candidates[0].value,
       confidence: candidates[0].confidence,
+      source: candidates[0].source,
       sources: [candidates[0].source],
       winningSource: candidates[0].source,
       hadConflict: false,
@@ -403,9 +410,10 @@ export function fuseCandidates<T>(
       return ok({
         value: candidates[0].value,
         confidence: candidates[0].confidence,
+        source: candidates[0].source,
         sources: [candidates[0].source],
         winningSource: candidates[0].source,
-        hadConflict: false,
+        hadConflict: candidates.length > 1,
       });
     
     case "consensus":
