@@ -12,6 +12,7 @@
 
 ### 🎯 Capacités Principales
 
+- ✅ **API REST** : 3 endpoints avec observabilité complète (logs, metrics, traces)
 - ✅ **Classification Pages** : Distinction produit / non-produit (Précision: 100%, Rappel: 67%, F1: 80%)
 - ✅ **Extraction Multi-Source** : 8 sources d'extraction complémentaires
 - ✅ **Normalisation Rigoureuse** : SI + ISO 4217 (prix→centimes, poids→g, dimensions→mm)
@@ -19,6 +20,7 @@
 - ✅ **Evidence Tracking** : Traçabilité complète des extractions
 - ✅ **CLI Complet** : 15+ options, 4 formats de sortie (JSON/CSV/Markdown/Text)
 - ✅ **Performance** : 14.2 pages/s, ~63ms/page
+- ✅ **Observabilité** : Stack Grafana/Prometheus/Loki/Tempo intégrée
 
 ---
 
@@ -34,6 +36,27 @@ cd thirdshop-text-analyzer
 # Installer Deno (si pas déjà installé)
 curl -fsSL https://deno.land/install.sh | sh
 ```
+
+### 🌐 API REST (Recommandé)
+
+```bash
+# Démarrer l'API
+./start-api.sh
+# ou
+deno run -A src/api/server.ts
+
+# Test health check
+curl http://localhost:8080/health
+
+# Analyser un document HTML
+curl -X POST http://localhost:8080/analyze \
+  -F "file=@dataset/pieceoccasion-1.html" | jq .
+
+# Voir les métriques Prometheus
+curl http://localhost:8080/metrics
+```
+
+📖 **Documentation complète :** [API.md](API.md)
 
 ### Utilisation CLI
 
@@ -73,12 +96,15 @@ if (!err) {
 ```
 thirdshop-text-analyzer/
 ├── src/
+│   ├── api/            # 🆕 API REST + middleware observabilité
+│   ├── observability/  # 🆕 Logger, metrics, tracer
 │   ├── html/           # Parsing HTML (linkedom wrapper)
 │   ├── text/           # Normalisation, TF-IDF, tokenization
 │   ├── extraction/     # Extraction multi-source (100+ patterns)
 │   ├── classification/ # Classification pages produit
 │   ├── pipeline/       # Orchestration pipeline
 │   └── types/          # Types communs (Result<T>)
+├── observability/      # Stack Grafana/Prometheus/Loki/Tempo
 ├── cli/                # Interface ligne de commande
 ├── tests/              # Tests d'intégration
 ├── dataset/            # Pages HTML de test
@@ -193,8 +219,12 @@ const [err, normalized] = normalizePrice("120.00 €");
 ### Exécuter les Tests
 
 ```bash
-# Tous les tests
+# Tous les tests (modules + API)
 deno test -A
+
+# Tests API uniquement (nécessite que l'API soit démarrée)
+deno run -A src/api/server.ts &
+deno test -A src/api/server_test.ts
 
 # Tests d'intégration Sprint 1
 deno test -A tests/integration/sprint1_extraction_test.ts
@@ -208,9 +238,9 @@ deno test -A tests/integration/sprint3_pipeline_test.ts
 
 ### Résultats
 
-- **Total tests :** 47 tests
-- **Passing :** 45/47 (95.7%)
-- **Couverture :** 100% des modules core
+- **Total tests :** 54+ tests (47 modules + 7 API)
+- **Passing :** 52/54+ (96%+)
+- **Couverture :** 100% des modules core + API
 
 ---
 
@@ -231,11 +261,11 @@ deno test -A tests/integration/sprint3_pipeline_test.ts
 
 ### Guides Principaux
 
+- **[API.md](API.md)** : 🆕 Documentation API REST complète
 - **[USER_GUIDE.md](documentations/USER_GUIDE.md)** : Guide utilisateur complet (9,500+ mots)
 - **[EXTRACTION_GUIDE.md](documentations/EXTRACTION_GUIDE.md)** : Guide extraction avancée
 - **[PATTERNS_REFERENCE.md](documentations/PATTERNS_REFERENCE.md)** : Référence complète 100+ patterns
-- **[PLAN_FINAL.md](PLAN_FINAL.md)** : Plan de développement consolidé
-- **[PROGRESS.md](PROGRESS.md)** : Suivi du développement
+- **[observability/README.md](observability/README.md)** : Guide stack observabilité
 
 ### Documentation par Module
 
