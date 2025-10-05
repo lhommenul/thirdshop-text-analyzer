@@ -238,7 +238,7 @@ export function extractByContext(
         
         matches.push({
           value,
-          keyword: tokens[keywordPos].text,
+          keyword: tokens[keywordPos].text.replace(/[:.,;!?]+$/, ""), // Remove trailing punctuation
           distance,
           confidence,
           position: tokens[matchTokenIndex].position,
@@ -363,13 +363,11 @@ export function extractBrandByContext(
     "par", "by", "de", "from",
   ];
   
-  // Brand pattern: capitalized words
-  const brandPattern = /[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g;
+  // Brand pattern: all caps (PEUGEOT) or capitalized words (Sony, Dell Inc)
+  const brandPattern = /\b[A-Z]{2,}\b|\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b/g;
   
-  return extractByContext(text, keywords, brandPattern, {
-    ...options,
-    caseSensitive: true, // Brands are case-sensitive
-  });
+  // Note: Pattern is case-sensitive by design ([A-Z]), but keywords should be case-insensitive
+  return extractByContext(text, keywords, brandPattern, options);
 }
 
 /**

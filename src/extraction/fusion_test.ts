@@ -10,8 +10,8 @@ import {
 import {
   fuseCandidates,
   mergeProductData,
-  FusionStrategy,
-  SOURCE_PRIORITY,
+  type ConflictStrategy,
+  SOURCE_WEIGHTS,
 } from "./fusion.ts";
 
 Deno.test("Fusion - Priority strategy: JSON-LD wins", () => {
@@ -21,7 +21,7 @@ Deno.test("Fusion - Priority strategy: JSON-LD wins", () => {
     { value: 119.99, source: "pattern", confidence: 0.60 },
   ];
 
-  const [err, result] = fuseCandidates(candidates, { strategy: "priority" as FusionStrategy });
+  const [err, result] = fuseCandidates(candidates, { strategy: "priority" });
 
   assert(!err, "Should not error");
   assertExists(result);
@@ -37,7 +37,7 @@ Deno.test("Fusion - Priority strategy: fallback to lower priority", () => {
     { value: 119.99, source: "pattern", confidence: 0.60 },
   ];
 
-  const [err, result] = fuseCandidates(candidates, { strategy: "priority" as FusionStrategy });
+  const [err, result] = fuseCandidates(candidates, { strategy: "priority" });
 
   assert(!err);
   assertEquals(result.value, 120.50, "Should select opengraph (highest available)");
@@ -51,7 +51,7 @@ Deno.test("Fusion - Confidence strategy: highest confidence wins", () => {
     { value: 119.99, source: "opengraph", confidence: 0.70 },
   ];
 
-  const [err, result] = fuseCandidates(candidates, { strategy: "confidence" as FusionStrategy });
+  const [err, result] = fuseCandidates(candidates, { strategy: "confidence" });
 
   assert(!err);
   assertEquals(result.value, 120.50, "Should select context (highest confidence)");
@@ -66,7 +66,7 @@ Deno.test("Fusion - Voting strategy: weighted average", () => {
     { value: 120.30, source: "pattern", confidence: 0.60 },
   ];
 
-  const [err, result] = fuseCandidates(candidates, { strategy: "voting" as FusionStrategy });
+  const [err, result] = fuseCandidates(candidates, { strategy: "voting" });
 
   assert(!err);
   assertExists(result.value);
@@ -99,7 +99,7 @@ Deno.test("Fusion - First strategy: first candidate", () => {
     { value: 120.00, source: "jsonld", confidence: 0.95 },
   ];
 
-  const [err, result] = fuseCandidates(candidates, { strategy: "first" as FusionStrategy });
+  const [err, result] = fuseCandidates(candidates, { strategy: "first" });
 
   assert(!err);
   assertEquals(result.value, 120.50, "Should select first candidate");
@@ -114,7 +114,7 @@ Deno.test("Fusion - Consensus strategy: requires N sources", () => {
   ];
 
   const [err, result] = fuseCandidates(candidates, {
-    strategy: "consensus" as FusionStrategy,
+    strategy: "consensus",
     consensusCount: 2,
   });
 
@@ -131,7 +131,7 @@ Deno.test("Fusion - Consensus strategy: no consensus", () => {
   ];
 
   const [err, result] = fuseCandidates(candidates, {
-    strategy: "consensus" as FusionStrategy,
+    strategy: "consensus",
     consensusCount: 2,
   });
 
@@ -147,7 +147,7 @@ Deno.test("Fusion - Single candidate: no conflict", () => {
     { value: 120.00, source: "jsonld", confidence: 0.95 },
   ];
 
-  const [err, result] = fuseCandidates(candidates, { strategy: "priority" as FusionStrategy });
+  const [err, result] = fuseCandidates(candidates, { strategy: "priority" });
 
   assert(!err);
   assertEquals(result.value, 120.00);
@@ -158,7 +158,7 @@ Deno.test("Fusion - Single candidate: no conflict", () => {
 Deno.test("Fusion - Empty candidates", () => {
   const candidates: any[] = [];
 
-  const [err, result] = fuseCandidates(candidates, { strategy: "priority" as FusionStrategy });
+  const [err, result] = fuseCandidates(candidates, { strategy: "priority" });
 
   assert(err !== null, "Should error on empty candidates");
 });
@@ -170,7 +170,7 @@ Deno.test("Fusion - String values: voting", () => {
     { value: "PEUGEOT", source: "pattern", confidence: 0.60 },
   ];
 
-  const [err, result] = fuseCandidates(candidates, { strategy: "voting" as FusionStrategy });
+  const [err, result] = fuseCandidates(candidates, { strategy: "voting" });
 
   assert(!err);
   // Should select most common value (case-insensitive)
@@ -183,19 +183,19 @@ Deno.test("Fusion - String values: priority", () => {
     { value: "Generic", source: "pattern", confidence: 0.60 },
   ];
 
-  const [err, result] = fuseCandidates(candidates, { strategy: "priority" as FusionStrategy });
+  const [err, result] = fuseCandidates(candidates, { strategy: "priority" });
 
   assert(!err);
   assertEquals(result.value, "DELPHI");
   assertEquals(result.source, "jsonld");
 });
 
-Deno.test("Fusion - SOURCE_PRIORITY order", () => {
-  assertEquals(SOURCE_PRIORITY.jsonld, 1.0);
-  assertEquals(SOURCE_PRIORITY.microdata, 0.8);
-  assertEquals(SOURCE_PRIORITY.opengraph, 0.6);
-  assert(SOURCE_PRIORITY.pattern < SOURCE_PRIORITY.context);
-  assert(SOURCE_PRIORITY.jsonld > SOURCE_PRIORITY.pattern);
+Deno.test("Fusion - SOURCE_WEIGHTS order", () => {
+  assertEquals(SOURCE_WEIGHTS.jsonld, 1.0);
+  assertEquals(SOURCE_WEIGHTS.microdata, 0.8);
+  assertEquals(SOURCE_WEIGHTS.opengraph, 0.6);
+  assert(SOURCE_WEIGHTS.pattern < SOURCE_WEIGHTS.context);
+  assert(SOURCE_WEIGHTS.jsonld > SOURCE_WEIGHTS.pattern);
 });
 
 Deno.test("Fusion - mergeProductData: full product", () => {
@@ -220,7 +220,7 @@ Deno.test("Fusion - mergeProductData: full product", () => {
     },
   ];
 
-  const [err, merged] = mergeProductData(sources, { strategy: "priority" as FusionStrategy });
+  const [err, merged] = mergeProductData(sources, { strategy: "priority" });
 
   assert(!err, "Should not error");
   assertExists(merged);
@@ -264,7 +264,7 @@ Deno.test("Fusion - mergeProductData: with voting", () => {
     },
   ];
 
-  const [err, merged] = mergeProductData(sources, { strategy: "voting" as FusionStrategy });
+  const [err, merged] = mergeProductData(sources, { strategy: "voting" });
 
   assert(!err);
   assertExists(merged.product.price);
@@ -278,7 +278,7 @@ Deno.test("Fusion - Confidence calculation", () => {
     { value: 120.50, source: "opengraph", confidence: 0.80 },
   ];
 
-  const [err, result] = fuseCandidates(candidates, { strategy: "priority" as FusionStrategy });
+  const [err, result] = fuseCandidates(candidates, { strategy: "priority" });
 
   assert(!err);
   assertExists(result.confidence);
@@ -344,7 +344,7 @@ Deno.test("Fusion - Complex scenario: multiple fields", () => {
     },
   ];
 
-  const [err, merged] = mergeProductData(sources, { strategy: "priority" as FusionStrategy });
+  const [err, merged] = mergeProductData(sources, { strategy: "priority" });
 
   assert(!err);
   assertExists(merged.product);
