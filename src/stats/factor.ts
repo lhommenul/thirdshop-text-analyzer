@@ -95,3 +95,5 @@ export function factorAnalysis(X: Matrix, options: FactorOptions = {}): Result<F
 }
 
 
+
+
